@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack Pro - Custom & Progresión Smart</title>
+    <!-- Configuración para PWA / Pantalla Completa -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .muscle-path { transition: fill 0.3s ease, stroke 0.3s ease; cursor: pointer; }
+        .muscle-path:hover { opacity: 0.85; stroke-width: 2px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-12">
+
+    <!-- Banner de Instalación PWA -->
+    <div id="pwaInstallBanner" class="hidden bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-4 py-2.5 text-xs font-bold flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-mobile-screen-button text-base"></i>
+            <span>¿Quieres instalar FitTrack Pro en tu pantalla principal?</span>
+        </div>
+        <button id="installAppBtn" class="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[11px] font-extrabold shadow hover:bg-slate-800 transition-all">
+            Instalar App
+        </button>
+    </div>
+
+    <!-- Header / Barra Superior -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-dumbbell text-blue-500 text-xl"></i>
+                <h1 class="text-lg font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">FitTrack Pro</h1>
+            </div>
+            
+            <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1 rounded-full border border-slate-700 text-xs">
+                <span class="text-slate-400"><i class="fa-solid fa-weight-scale text-blue-400 mr-1"></i>Peso Base:</span>
+                <input type="number" id="globalBodyWeight" value="81.5" step="0.1" class="w-12 bg-transparent text-emerald-400 font-bold outline-none text-right">
+                <span class="text-slate-400">kg</span>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="max-w-xl mx-auto px-4 flex border-t border-slate-700/60">
+            <button onclick="switchTab('measures')" id="tabBtnMeasures" class="flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex justify-center items-center space-x-2 transition-all">
+                <i class="fa-solid fa-ruler-combined"></i>
+                <span>Grasa & Medidas</span>
+            </button>
+            <button onclick="switchTab('gym')" id="tabBtnGym" class="flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 flex justify-center items-center space-x-2 transition-all hover:text-slate-200">
+                <i class="fa-solid fa-dumbbell"></i>
+                <span>Rutina & Gym</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto px-4 mt-4">
+
+        <!-- TAB 1: GRASA Y MEDIDAS -->
+        <div id="tabMeasures" class="space-y-4">
+            
+            <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-md font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-file-pen text-blue-400"></i> Nuevo Registro de Medidas
+                    </h2>
+                    <span class="text-xs text-slate-400">Método Marina EE.UU.</span>
+                </div>
+
+                <form id="measuresForm" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha</label>
+                            <input type="date" id="measureDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Peso (kg)</label>
+                            <input type="number" id="measureWeight" step="0.1" placeholder="Ej: 81.5" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Altura (cm)</label>
+                            <input type="number" id="measureHeight" value="180" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Cuello (cm)</label>
+                            <input type="number" id="measureNeck" step="0.5" placeholder="Ej: 38" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1">Cintura (cm)</label>
+                            <input type="number" id="measureAbdomen" step="0.5" placeholder="Ej: 88" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Medidas de Circunferencia -->
+                    <div class="border-t border-slate-700 pt-2 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Brazo Sup. Reposo (cm)</label>
+                            <input type="number" id="measureArmRelaxed" step="0.5" placeholder="Ej: 33" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Brazo Sup. Flexionado (cm)</label>
+                            <input type="number" id="measureArmFlexed" step="0.5" placeholder="Ej: 36" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Brazo Inferior / Antebrazo</label>
+                            <input type="number" id="measureForearm" step="0.5" placeholder="Ej: 28" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Pecho (cm)</label>
+                            <input type="number" id="measureChest" step="0.5" placeholder="Ej: 102" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Pierna Superior / Muslo</label>
+                            <input type="number" id="measureThigh" step="0.5" placeholder="Ej: 58" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-400 mb-1">Pierna Inferior / Gemelo</label>
+                            <input type="number" id="measureCalf" step="0.5" placeholder="Ej: 38" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        </div>
+                    </div>
+
+                    <div id="liveCalcBox" class="hidden bg-slate-900/90 border border-blue-500/30 rounded-xl p-3 text-center">
+                        <span class="text-xs text-slate-400 block">Estimación Instantánea de Grasa</span>
+                        <div class="text-2xl font-black text-emerald-400 mt-0.5" id="liveFatVal">--%</div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg text-sm">
+                        <i class="fa-solid fa-floppy-disk mr-1"></i> Guardar Medición
+                    </button>
+                </form>
+            </div>
+
+            <!-- Gráfico de Evolución con Selector de Métrica -->
+            <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-4 shadow-xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i> Tendencia Corporal
+                    </h3>
+                    <select id="chartMetricSelect" onchange="updateBodyChart()" class="bg-slate-900 border border-slate-700 text-xs text-emerald-400 font-bold rounded-lg px-2.5 py-1.5 focus:outline-none">
+                        <option value="weight">Peso (kg)</option>
+                        <option value="fat">% Grasa Estimada</option>
+                        <option value="armFlexed">Brazo Flexionado (cm)</option>
+                        <option value="armRelaxed">Brazo Reposo (cm)</option>
+                        <option value="forearm">Brazo Inferior (cm)</option>
+                        <option value="chest">Pecho (cm)</option>
+                        <option value="thigh">Pierna Superior (cm)</option>
+                        <option value="calf">Pierna Inferior (cm)</option>
+                        <option value="abdomen">Cintura (cm)</option>
+                    </select>
+                </div>
+                <div class="h-60 relative">
+                    <canvas id="bodyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: RUTINA & GYM -->
+        <div id="tabGym" class="space-y-4 hidden">
+            
+            <!-- Selector de Día de Rutina -->
+            <div class="flex flex-col gap-2">
+                <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-1.5 shadow-xl flex justify-between gap-1">
+                    <button onclick="setGymDay(1)" id="btnDay1" class="flex-1 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all shadow">
+                        Día 1
+                    </button>
+                    <button onclick="setGymDay(2)" id="btnDay2" class="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-slate-200 transition-all">
+                        Día 2
+                    </button>
+                    <button onclick="setGymDay(3)" id="btnDay3" class="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-slate-200 transition-all">
+                        Día 3
+                    </button>
+                    <button onclick="setGymDay(4)" id="btnDay4" class="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-slate-200 transition-all">
+                        Adicional
+                    </button>
+                </div>
+
+                <!-- Botones de Gestión / Backup / Crear -->
+                <div class="flex items-center gap-2">
+                    <button onclick="exportDataBackup()" title="Descargar Respaldo (Backup JSON)" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-2.5 rounded-xl text-xs font-bold shadow transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-download text-blue-400"></i> Exportar
+                    </button>
+                    <label title="Restaurar Respaldo JSON" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-2.5 rounded-xl text-xs font-bold shadow transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-upload text-emerald-400"></i> Importar
+                        <input type="file" id="importFile" accept=".json" onchange="importDataBackup(event)" class="hidden">
+                    </label>
+                    <button onclick="openCustomExModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg transition-all">
+                        <i class="fa-solid fa-plus"></i> Crear Ejercicio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mapa Anatómico SVG Interactivo y Dinámico -->
+            <div class="bg-slate-800 border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-child text-emerald-400"></i> Impacto Anatómico SVG
+                    </h3>
+                    <span id="mapSubtitle" class="text-[10px] bg-slate-900 border border-slate-700 text-emerald-400 px-2 py-0.5 rounded-full">Mostrando Día 1</span>
+                </div>
+
+                <div class="flex justify-center items-center gap-6 py-2 bg-slate-900/60 rounded-xl border border-slate-700/50">
+                    <!-- Frente -->
+                    <div class="text-center">
+                        <span class="text-[10px] font-bold text-slate-500 block mb-1">VISTA FRONTAL</span>
+                        <svg width="100" height="190" viewBox="0 0 100 200" class="mx-auto">
+                            <circle cx="50" cy="18" r="12" fill="#334155" />
+                            <rect x="46" y="30" width="8" height="8" fill="#334155" />
+                            <path id="svg-pecho" class="muscle-path" d="M34,42 Q50,45 66,42 L64,58 Q50,62 36,58 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Pecho')" />
+                            <path id="svg-hombros-frente" class="muscle-path" d="M25,42 Q33,40 34,46 L30,58 Q24,52 25,42 Z M75,42 Q67,40 66,46 L70,58 Q76,52 75,42 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Hombros')" />
+                            <path id="svg-biceps" class="muscle-path" d="M28,60 Q34,60 32,78 Q26,76 28,60 Z M72,60 Q66,60 68,78 Q74,76 72,60 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Bíceps')" />
+                            <path id="svg-core" class="muscle-path" d="M37,60 Q50,61 63,60 L60,92 Q50,96 40,92 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Core')" />
+                            <path id="svg-cuadriceps" class="muscle-path" d="M36,98 Q49,98 48,140 L36,138 Z M64,98 Q51,98 52,140 L64,138 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Piernas')" />
+                            <path id="svg-pantorrillas-frente" class="muscle-path" d="M36,146 Q47,146 44,180 L37,180 Z M64,146 Q53,146 56,180 L63,180 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Pantorrillas')" />
+                        </svg>
+                    </div>
+
+                    <!-- Espalda -->
+                    <div class="text-center">
+                        <span class="text-[10px] font-bold text-slate-500 block mb-1">VISTA POSTERIOR</span>
+                        <svg width="100" height="190" viewBox="0 0 100 200" class="mx-auto">
+                            <circle cx="50" cy="18" r="12" fill="#334155" />
+                            <path id="svg-espalda" class="muscle-path" d="M32,42 Q50,38 68,42 L62,88 Q50,92 38,88 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Espalda')" />
+                            <path id="svg-hombros-espalda" class="muscle-path" d="M25,42 Q68,40 68,48 L73,58 Q77,50 75,42 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Hombros')" />
+                            <path id="svg-triceps" class="muscle-path" d="M26,60 Q32,58 30,78 Q24,74 26,60 Z M74,60 Q68,58 70,78 Q76,74 74,60 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Tríceps')" />
+                            <path id="svg-gluteos" class="muscle-path" d="M36,92 Q50,90 64,92 L62,120 Q50,124 38,120 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Glúteos')" />
+                            <path id="svg-pantorrillas" class="muscle-path" d="M36,146 Q47,146 44,180 L37,180 Z M64,146 Q53,146 56,180 L63,180 Z" fill="#475569" stroke="#1e293b" onclick="showMuscleDetail('Pantorrillas')" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div id="muscleInfoCard" class="hidden mt-3 bg-slate-900 border border-blue-500/40 rounded-xl p-3 text-xs">
+                    <div class="flex justify-between items-center mb-1">
+                        <span id="muscleInfoTitle" class="font-bold text-blue-400 text-sm">--</span>
+                        <span id="muscleInfoBadge" class="bg-blue-600/30 text-blue-300 font-semibold px-2 py-0.5 rounded-md border border-blue-500/30">Activación</span>
+                    </div>
+                    <ul id="muscleInfoList" class="list-disc list-inside text-slate-200 space-y-1 mt-2"></ul>
+                </div>
+            </div>
+
+            <!-- Contenedor Dinámico de Ejercicios del Día -->
+            <div id="exercisesList" class="space-y-3"></div>
+        </div>
+
+    </main>
+
+    <!-- Modal 1: Crear / Editar Ejercicio -->
+    <div id="customExModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalCustomExTitle" class="text-md font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> Configurar Ejercicio
+                </h3>
+                <button onclick="closeCustomExModal()" class="text-slate-400 hover:text-slate-200 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="customExForm" class="space-y-3">
+                <input type="hidden" id="editExId">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Ejercicio</label>
+                    <input type="text" id="newExName" placeholder="Ej: Press de Banca" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Imagen del Ejercicio (Galería)</label>
+                    <input type="file" id="newExImageFile" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Día de Rutina</label>
+                        <select id="newExDay" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                            <option value="1">Día 1</option>
+                            <option value="2">Día 2</option>
+                            <option value="3">Día 3</option>
+                            <option value="4">Adicional</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Grupo Principal</label>
+                        <select id="newExGroup" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                            <option value="Hombros">Hombros</option>
+                            <option value="Pecho">Pecho</option>
+                            <option value="Espalda">Espalda</option>
+                            <option value="Bíceps">Bíceps</option>
+                            <option value="Tríceps">Tríceps</option>
+                            <option value="Piernas">Piernas</option>
+                            <option value="Glúteos">Glúteos</option>
+                            <option value="Pantorrillas">Pantorrillas</option>
+                            <option value="Core">Core</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Rango de Reps Objetivo</label>
+                        <select id="newExRange" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                            <option value="8-10">8 a 10 reps (Pesado)</option>
+                            <option value="12-15">12 a 15 reps (Aislamiento)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1">Series Iniciales</label>
+                        <input type="number" id="newExSets" value="3" min="1" max="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-700 pt-3">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-slate-300">Activación Anatómica (% por Porción)</span>
+                        <button type="button" onclick="addActivationRow()" class="bg-slate-700 hover:bg-slate-600 text-emerald-400 text-[11px] font-bold px-2 py-0.5 rounded-lg border border-slate-600">
+                            + Añadir Porción
+                        </button>
+                    </div>
+                    <div id="activationsContainer" class="space-y-2 text-xs"></div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg text-sm mt-3">
+                    Guardar Ejercicio
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Configuración de Progresión Smart por Ejercicio -->
+    <div id="progressionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-md font-bold text-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-blue-400"></i> Regla de Progresión Smart
+                </h3>
+                <button onclick="closeProgressionModal()" class="text-slate-400 hover:text-slate-200 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="progressionForm" class="space-y-3 text-xs">
+                <input type="hidden" id="progExId">
+
+                <div>
+                    <label class="block font-semibold text-slate-400 mb-1">Estrategia de Avance</label>
+                    <select id="progStrategy" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                        <option value="reps_first">Escalada de Reps (Llegar al tope antes de subir peso)</option>
+                        <option value="weight_first">Sobrecarga de Peso Rápida (Subir apenas toque el mínimo)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-400 mb-1">Incremento al Subir de Peso (kg)</label>
+                    <input type="number" id="progStep" step="0.5" value="2.0" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100">
+                </div>
+
+                <div class="bg-slate-900/80 border border-slate-700/60 rounded-xl p-2.5 text-slate-400 leading-relaxed">
+                    <i class="fa-solid fa-circle-info text-blue-400 mr-1"></i> Esta regla define cuándo el asistente te sugerirá sumar repeticiones o dar el salto de peso al registrar tus series.
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg text-sm mt-3">
+                    Guardar Regla Personalizada
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Registrar Sesión por Series -->
+    <div id="sessionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center px-4 hidden">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 id="modalExerciseTitle" class="text-md font-bold text-slate-100">Registrar Sesión</h3>
+                <button onclick="closeSessionModal()" class="text-slate-400 hover:text-slate-200 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="smartSuggestionCard" class="bg-gradient-to-r from-emerald-950/80 to-slate-900 border border-emerald-500/40 rounded-xl p-3 mb-4">
+                <div class="flex items-center space-x-2 text-emerald-400 text-xs font-bold mb-1">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Objetivo de Progresión Smart:</span>
+                </div>
+                <p id="smartSuggestionText" class="text-xs text-slate-200 leading-relaxed font-semibold">Cargando sugerencia...</p>
+            </div>
+
+            <form id="sessionForm" class="space-y-3">
+                <input type="hidden" id="modalExerciseId">
+                <input type="hidden" id="editingSessionIndex" value="-1">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Fecha</label>
+                    <input type="date" id="sessionDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100">
+                </div>
+
+                <div id="setsInputContainer" class="space-y-2"></div>
+
+                <button type="button" onclick="addSetRow()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold py-2 rounded-xl transition-all border border-slate-600">
+                    + Añadir Otra Serie
+                </button>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg text-sm mt-3">
+                    Guardar Registro de Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const muscleLibrary = [
+            { name: "Pectoral Mayor (Pecho)", group: "Pecho" },
+            { name: "Pectoral Clavicular / Superior (Pecho)", group: "Pecho" },
+            { name: "Deltoides Anterior (Hombros)", group: "Hombros" },
+            { name: "Deltoides Lateral (Hombros)", group: "Hombros" },
+            { name: "Deltoides Posterior (Hombros)", group: "Hombros" },
+            { name: "Dorsal Ancho (Espalda)", group: "Espalda" },
+            { name: "Trapecio (Espalda)", group: "Espalda" },
+            { name: "Cabeza Larga / Principal (Bíceps)", group: "Bíceps" },
+            { name: "Braquial Anterior (Bíceps)", group: "Bíceps" },
+            { name: "Braquiorradial / Antebrazo (Bíceps)", group: "Bíceps" },
+            { name: "Cabeza Larga (Tríceps)", group: "Tríceps" },
+            { name: "Cabeza Lateral / Medial (Tríceps)", group: "Tríceps" },
+            { name: "Cuádriceps (Piernas)", group: "Piernas" },
+            { name: "Isquiotibiales (Piernas)", group: "Piernas" },
+            { name: "Glúteo Mayor (Glúteos)", group: "Glúteos" },
+            { name: "Gemelos / Gastrocnemio (Pantorrillas)", group: "Pantorrillas" },
+            { name: "Recto Abdominal / Core (Core)", group: "Core" }
+        ];
+
+        let deferredPrompt;
+        const manifestData = {
+            "name": "FitTrack Pro",
+            "short_name": "FitTrack",
+            "start_url": window.location.href,
+            "display": "standalone",
+            "background_color": "#0f172a",
+            "theme_color": "#0f172a",
+            "icons": [{ "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/dumbbell.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        const linkTag = document.createElement('link');
+        linkTag.rel = 'manifest';
+        linkTag.href = manifestURL;
+        document.head.appendChild(linkTag);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwaInstallBanner').classList.remove('hidden');
+        });
+
+        document.getElementById('installAppBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('pwaInstallBanner').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        let exercisesDB = JSON.parse(localStorage.getItem('fittrack_exercises')) || [];
+        let measuresDB = JSON.parse(localStorage.getItem('fittrack_measures')) || [
+            { date: '2026-10-01', weight: 84.5, height: 180, neck: 39, abdomen: 92, armRelaxed: 32, armFlexed: 35, forearm: 27, chest: 100, thigh: 56, calf: 37, fat: 21.5 },
+            { date: '2026-10-15', weight: 83.2, height: 180, neck: 38.5, abdomen: 90, armRelaxed: 33, armFlexed: 35.5, forearm: 27.5, chest: 101, thigh: 57, calf: 37.5, fat: 20.8 },
+            { date: '2026-10-22', weight: 82.1, height: 180, neck: 38, abdomen: 89, armRelaxed: 33.5, armFlexed: 36, forearm: 28, chest: 101.5, thigh: 57.5, calf: 38, fat: 20.1 },
+            { date: '2026-10-30', weight: 81.5, height: 180, neck: 38, abdomen: 88, armRelaxed: 34, armFlexed: 36.5, forearm: 28.5, chest: 102, thigh: 58, calf: 38.5, fat: 19.4 }
+        ];
+
+        let currentGymDay = 1;
+        let bodyChart = null;
+        let tempImageBase64 = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('measureDate').valueAsDate = new Date();
+            document.getElementById('sessionDate').valueAsDate = new Date();
+            
+            document.getElementById('newExImageFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(uploadEvent) {
+                        tempImageBase64 = uploadEvent.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            const measureInputs = ['measureWeight', 'measureHeight', 'measureNeck', 'measureAbdomen'];
+            measureInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', calculateLiveFat);
+            });
+
+            document.getElementById('measuresForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const date = document.getElementById('measureDate').value;
+                const weight = parseFloat(document.getElementById('measureWeight').value) || 0;
+                const height = parseFloat(document.getElementById('measureHeight').value) || 180;
+                const neck = parseFloat(document.getElementById('measureNeck').value) || 0;
+                const abdomen = parseFloat(document.getElementById('measureAbdomen').value) || 0;
+                const armRelaxed = parseFloat(document.getElementById('measureArmRelaxed').value) || 0;
+                const armFlexed = parseFloat(document.getElementById('measureArmFlexed').value) || 0;
+                const forearm = parseFloat(document.getElementById('measureForearm').value) || 0;
+                const chest = parseFloat(document.getElementById('measureChest').value) || 0;
+                const thigh = parseFloat(document.getElementById('measureThigh').value) || 0;
+                const calf = parseFloat(document.getElementById('measureCalf').value) || 0;
+
+                let fat = 495 / (1.0324 - 0.19077 * Math.log10(abdomen - neck) + 0.15456 * Math.log10(height)) - 450;
+                fat = isNaN(fat) ? 0 : parseFloat(fat.toFixed(1));
+
+                measuresDB.push({ date, weight, height, neck, abdomen, armRelaxed, armFlexed, forearm, chest, thigh, calf, fat });
+                localStorage.setItem('fittrack_measures', JSON.stringify(measuresDB));
+
+                alert("¡Medición guardada con éxito!");
+                updateBodyChart();
+                document.getElementById('measuresForm').reset();
+                document.getElementById('measureDate').valueAsDate = new Date();
+                document.getElementById('liveCalcBox').classList.add('hidden');
+            });
+
+            // Guardar configuración de progresión smart
+            document.getElementById('progressionForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const exId = document.getElementById('progExId').value;
+                const strategy = document.getElementById('progStrategy').value;
+                const step = parseFloat(document.getElementById('progStep').value) || 2.0;
+
+                const ex = exercisesDB.find(x => x.id === exId);
+                if (ex) {
+                    ex.progressionRule = { strategy, step };
+                    saveExercisesToStorage();
+                    alert("¡Regla de progresión actualizada!");
+                    closeProgressionModal();
+                }
+            });
+
+            renderGymExercises();
+            updateAnatomicalMapColors();
+            initBodyChart();
+        });
+
+        function calculateLiveFat() {
+            const h = parseFloat(document.getElementById('measureHeight').value);
+            const n = parseFloat(document.getElementById('measureNeck').value);
+            const a = parseFloat(document.getElementById('measureAbdomen').value);
+            const box = document.getElementById('liveCalcBox');
+            const valEl = document.getElementById('liveFatVal');
+
+            if (h > 0 && n > 0 && a > 0 && a > n) {
+                let fat = 495 / (1.0324 - 0.19077 * Math.log10(a - n) + 0.15456 * Math.log10(h)) - 450;
+                valEl.textContent = fat.toFixed(1) + '%';
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        }
+
+        function exportDataBackup() {
+            const fullBackup = { exercises: exercisesDB, measures: measuresDB };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `fittrack_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.exercises) {
+                        exercisesDB = parsed.exercises;
+                        saveExercisesToStorage();
+                    } else {
+                        exercisesDB = parsed;
+                        saveExercisesToStorage();
+                    }
+                    if (parsed.measures) {
+                        measuresDB = parsed.measures;
+                        localStorage.setItem('fittrack_measures', JSON.stringify(measuresDB));
+                    }
+                    renderGymExercises();
+                    updateAnatomicalMapColors();
+                    updateBodyChart();
+                    alert("¡Respaldo restaurado con éxito!");
+                } catch (err) {
+                    alert("El archivo seleccionado no es válido.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function switchTab(tab) {
+            const measuresEl = document.getElementById('tabMeasures');
+            const gymEl = document.getElementById('tabGym');
+            const btnMeasures = document.getElementById('tabBtnMeasures');
+            const btnGym = document.getElementById('tabBtnGym');
+
+            if (tab === 'measures') {
+                measuresEl.classList.remove('hidden');
+                gymEl.classList.add('hidden');
+                btnMeasures.className = "flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex justify-center items-center space-x-2 transition-all";
+                btnGym.className = "flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 flex justify-center items-center space-x-2 transition-all hover:text-slate-200";
+            } else {
+                measuresEl.classList.add('hidden');
+                gymEl.classList.remove('hidden');
+                btnGym.className = "flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex justify-center items-center space-x-2 transition-all";
+                btnMeasures.className = "flex-1 py-2.5 text-center text-sm font-semibold border-b-2 border-transparent text-slate-400 flex justify-center items-center space-x-2 transition-all hover:text-slate-200";
+            }
+        }
+
+        function setGymDay(day) {
+            currentGymDay = day;
+            [1, 2, 3, 4].forEach(d => {
+                const btn = document.getElementById(`btnDay${d}`);
+                if (btn) {
+                    btn.className = d === day ? "flex-1 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all shadow" : "flex-1 py-2 rounded-xl text-xs font-bold bg-slate-900 text-slate-400 hover:text-slate-200 transition-all";
+                }
+            });
+            const subTitle = day === 4 ? "Adicional" : `Día ${day}`;
+            document.getElementById('mapSubtitle').textContent = `Mostrando ${subTitle}`;
+            renderGymExercises();
+            updateAnatomicalMapColors();
+        }
+
+        function saveExercisesToStorage() {
+            localStorage.setItem('fittrack_exercises', JSON.stringify(exercisesDB));
+        }
+
+        function toggleExerciseCard(cardId) {
+            const contentEl = document.getElementById(cardId);
+            if (contentEl) {
+                contentEl.classList.toggle('hidden');
+            }
+        }
+
+        function openProgressionModal(exId) {
+            const ex = exercisesDB.find(x => x.id === exId);
+            if (!ex) return;
+
+            document.getElementById('progExId').value = ex.id;
+            const rule = ex.progressionRule || { strategy: 'reps_first', step: 2.0 };
+            document.getElementById('progStrategy').value = rule.strategy;
+            document.getElementById('progStep').value = rule.step;
+
+            document.getElementById('progressionModal').classList.remove('hidden');
+        }
+
+        function closeProgressionModal() {
+            document.getElementById('progressionModal').classList.add('hidden');
+        }
+
+        function renderGymExercises() {
+            const container = document.getElementById('exercisesList');
+            container.innerHTML = '';
+
+            const dayExercises = exercisesDB.filter(ex => ex.day === currentGymDay);
+
+            if (dayExercises.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-6 text-center text-slate-400 text-xs">
+                        <i class="fa-solid fa-folder-open text-2xl text-slate-600 mb-2 block"></i>
+                        No hay ejercicios cargados para este día.<br>Haz clic en <strong>"+ Crear Ejercicio"</strong> para registrar tu primera actividad.
+                    </div>
+                `;
+                return;
+            }
+
+            dayExercises.forEach((ex) => {
+                const actsBadges = (ex.activations || []).map(a => `<span class="bg-slate-900 border border-slate-700 text-emerald-400 text-[10px] px-2 py-0.5 rounded-md font-semibold">${a.name}: ${a.pct}%</span>`).join(' ');
+                const imgHtml = ex.image ? `<img src="${ex.image}" alt="${ex.name}" class="w-full h-44 object-cover rounded-xl mb-2.5 border border-slate-700 shadow-md">` : '';
+
+                let historyHtml = '';
+                let totalScoreLastSession = 0;
+                let trendLabels = [];
+                let trendValues = [];
+
+                if (ex.history && ex.history.length > 0) {
+                    const recentHistory = ex.history.slice(-12);
+                    recentHistory.forEach(s => {
+                        trendLabels.push(s.date);
+                        let sessionSum = s.sets.reduce((acc, st) => acc + (st.weight || 0) + (st.reps || 0), 0) + s.sets.length;
+                        trendValues.push(sessionSum);
+                    });
+
+                    const lastSess = ex.history[ex.history.length - 1];
+                    totalScoreLastSession = lastSess.sets.reduce((acc, st) => acc + (st.weight || 0) + (st.reps || 0), 0) + lastSess.sets.length;
+
+                    historyHtml = ex.history.map((sess, sessIdx) => {
+                        const isLatest = sessIdx === ex.history.length - 1;
+                        if (!isLatest) return '';
+
+                        const setsDetail = (sess.sets || []).map((s, sIdx) => `<span class="inline-block bg-slate-900 text-slate-300 text-[10px] px-2 py-1 rounded border border-slate-700/60 mr-1 mb-1">S${sIdx+1}: <strong>${s.weight} kg</strong> × ${s.reps} reps</span>`).join('');
+                        return `
+                            <div class="bg-slate-900/60 rounded-xl p-2.5 border border-slate-700/50 mb-2">
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-[11px] font-bold text-blue-400"><i class="fa-regular fa-calendar mr-1"></i>Último Registro: ${sess.date}</span>
+                                    <div class="flex items-center space-x-1">
+                                        <button onclick="editSession('${ex.id}', ${sessIdx})" class="text-slate-400 hover:text-blue-400 text-xs px-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button onclick="deleteSession('${ex.id}', ${sessIdx})" class="text-slate-400 hover:text-rose-400 text-xs px-1"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap mb-2">${setsDetail}</div>
+                                
+                                <div class="bg-slate-950/80 border border-emerald-500/30 rounded-lg p-2 text-center mt-2">
+                                    <span class="text-[10px] text-slate-400 block font-semibold">ESTADÍSTICA DE RENDIMIENTO (Última Sesión)</span>
+                                    <span class="text-sm font-black text-emerald-400">Total (Kg + Reps + Series): ${totalScoreLastSession.toFixed(1)}</span>
+                                </div>
+
+                                <div class="mt-3 pt-2 border-t border-slate-800">
+                                    <span class="text-[10px] text-slate-400 block font-semibold mb-1">Línea de Tendencia (Últimos ${trendValues.length} registros)</span>
+                                    <div class="h-28 relative">
+                                        <canvas id="trendChart_${ex.id}"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    historyHtml = `<p class="text-slate-500 text-[11px] italic">Sin sesiones registradas aún.</p>`;
+                }
+
+                const collapseId = `collapse_${ex.id}`;
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700/80 rounded-2xl p-4 shadow-xl space-y-3";
+                card.innerHTML = `
+                    <div onclick="toggleExerciseCard('${collapseId}')" class="cursor-pointer">
+                        ${imgHtml}
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs font-bold bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md border border-blue-500/30">${ex.muscle}</span>
+                                    <span class="text-[10px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">${ex.range || '8-10'} reps</span>
+                                </div>
+                                <h4 class="text-base font-bold text-slate-100 mt-1">${ex.name}</h4>
+                            </div>
+                            <div class="flex items-center space-x-1" onclick="event.stopPropagation()">
+                                <button onclick="openProgressionModal('${ex.id}')" title="Configurar Regla de Progresión" class="text-slate-400 hover:text-emerald-400 text-xs p-1"><i class="fa-solid fa-sliders"></i></button>
+                                <button onclick="editExercise('${ex.id}')" class="text-slate-400 hover:text-blue-400 text-xs p-1"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteExercise('${ex.id}')" class="text-slate-400 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="openSessionModal('${ex.id}')" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 text-white border border-emerald-500/30 text-xs font-bold px-2.5 py-1.5 rounded-xl transition-all ml-1">
+                                    + Registrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="${collapseId}" class="hidden space-y-3 pt-2 border-t border-slate-700/60">
+                        <div class="flex flex-wrap gap-1">${actsBadges}</div>
+
+                        <div class="border-t border-slate-700/60 pt-2.5">
+                            <span class="text-xs font-bold text-slate-400 block mb-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Historial de Sesiones:</span>
+                            <div class="overflow-y-auto pr-1">${historyHtml}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                if (ex.history && ex.history.length > 0) {
+                    setTimeout(() => {
+                        const canvasCtx = document.getElementById(`trendChart_${ex.id}`);
+                        if (canvasCtx) {
+                            new Chart(canvasCtx.getContext('2d'), {
+                                type: 'line',
+                                data: {
+                                    labels: trendLabels,
+                                    datasets: [{
+                                        label: 'Evolución Total',
+                                        data: trendValues,
+                                        borderColor: '#10b981',
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        borderWidth: 2,
+                                        tension: 0.3,
+                                        fill: true
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false } },
+                                    scales: {
+                                        x: { ticks: { font: { size: 9 }, color: '#94a3b8' }, grid: { display: false } },
+                                        y: { ticks: { font: { size: 9 }, color: '#94a3b8' }, grid: { color: '#334155' } }
+                                    }
+                                }
+                            });
+                        }
+                    }, 50);
+                }
+            });
+        }
+
+        function addActivationRow(name = '', pct = '') {
+            const container = document.getElementById('activationsContainer');
+            const div = document.createElement('div');
+            div.className = "flex items-center justify-between gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/50";
+            
+            let optionsHtml = `<option value="">-- Seleccionar Músculo/Porción --</option>`;
+            muscleLibrary.forEach(m => {
+                const selected = m.name === name ? 'selected' : '';
+                optionsHtml += `<option value="${m.name}" ${selected}>${m.name}</option>`;
+            });
+
+            div.innerHTML = `
+                <select onchange="onMuscleLibrarySelect(this)" class="act-name bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 flex-1 text-xs text-slate-200">
+                    ${optionsHtml}
+                </select>
+                <input type="number" placeholder="%" value="${pct}" min="0" max="100" class="act-pct w-16 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-emerald-400 font-bold text-right">%
+                <button type="button" onclick="this.parentElement.remove()" class="text-slate-500 hover:text-rose-400 px-1.5 text-xs"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function onMuscleLibrarySelect(selectEl) {
+            const val = selectEl.value;
+            const found = muscleLibrary.find(m => m.name === val);
+            if (found) {
+                document.getElementById('newExGroup').value = found.group;
+            }
+        }
+
+        function openSessionModal(exId, sessionIdx = -1) {
+            const ex = exercisesDB.find(e => e.id === exId);
+            if (!ex) return;
+
+            document.getElementById('modalExerciseId').value = ex.id;
+            document.getElementById('editingSessionIndex').value = sessionIdx;
+            document.getElementById('modalExerciseTitle').textContent = sessionIdx >= 0 ? `Editar Sesión - ${ex.name}` : `Registrar Sesión - ${ex.name}`;
+
+            const container = document.getElementById('setsInputContainer');
+            container.innerHTML = '';
+
+            const lastSess = ex.history && ex.history.length > 0 ? ex.history[ex.history.length - 1] : null;
+            const targetRange = ex.range || '8-10';
+            const maxReps = parseInt(targetRange.split('-')[1]) || 10;
+            const rule = ex.progressionRule || { strategy: 'reps_first', step: 2.0 };
+
+            const suggText = document.getElementById('smartSuggestionText');
+            if (!lastSess) {
+                suggText.innerHTML = `Primer registro. Busca un peso cómodo para el rango <strong class="text-emerald-400">${targetRange} reps</strong>.`;
+            } else {
+                const avgReps = lastSess.sets.reduce((acc, s) => acc + s.reps, 0) / lastSess.sets.length;
+                const lastWeight = lastSess.sets[0]?.weight || 10;
+
+                if (rule.strategy === 'weight_first') {
+                    suggText.innerHTML = `Regla Peso Rápido: Si completaste el mínimo del rango, intenta subir <strong class="text-emerald-400">+${rule.step} kg</strong> hoy.`;
+                } else {
+                    if (avgReps < maxReps) {
+                        suggText.innerHTML = `Semana de escalada: Mantén <strong class="text-emerald-400">${lastWeight} kg</strong> e intenta buscar <strong class="text-emerald-400">+1 repetición extra</strong>.`;
+                    } else {
+                        suggText.innerHTML = `¡Techo alcanzado! Sube <strong class="text-emerald-400">+${rule.step} kg</strong> en tu próxima serie.`;
+                    }
+                }
+            }
+
+            if (sessionIdx >= 0 && ex.history[sessionIdx]) {
+                const sess = ex.history[sessionIdx];
+                document.getElementById('sessionDate').value = sess.date;
+                sess.sets.forEach((s, idx) => addSetRow(s.weight, s.reps, idx + 1));
+            } else {
+                const numSets = lastSess ? lastSess.sets.length : (ex.sets || 3);
+                for (let i = 0; i < numSets; i++) {
+                    let prevW = lastSess && lastSess.sets[i] ? lastSess.sets[i].weight : 10;
+                    let prevR = lastSess && lastSess.sets[i] ? lastSess.sets[i].reps : 10;
+                    
+                    // Aplicar sugerencia automática de peso si el techo se alcanzó previamente
+                    if (lastSess && rule.strategy === 'reps_first') {
+                        const avgReps = lastSess.sets.reduce((acc, s) => acc + s.reps, 0) / lastSess.sets.length;
+                        if (avgReps >= maxReps && i === 0) {
+                            prevW += rule.step;
+                        }
+                    }
+                    addSetRow(prevW, prevR, i + 1);
+                }
+            }
+
+            document.getElementById('sessionModal').classList.remove('hidden');
+        }
+
+        function addSetRow(weight = 10, reps = 10, setNum = null) {
+            const container = document.getElementById('setsInputContainer');
+            const displayNum = setNum || (container.children.length + 1);
+
+            const div = document.createElement('div');
+            div.className = "flex items-center gap-2 bg-slate-900/80 p-2 rounded-xl border border-slate-700/60";
+            div.innerHTML = `
+                <span class="text-xs font-bold text-slate-400 w-14">Serie ${displayNum}:</span>
+                <div class="flex-1">
+                    <input type="number" step="0.5" value="${weight}" required placeholder="Peso kg" class="set-weight w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100">
+                </div>
+                <div class="flex-1">
+                    <input type="number" value="${reps}" required placeholder="Reps" class="set-reps w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-100">
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-slate-500 hover:text-rose-400 px-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            container.appendChild(div);
+        }
+
+        function closeSessionModal() { document.getElementById('sessionModal').classList.add('hidden'); }
+
+        document.getElementById('sessionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const exId = document.getElementById('modalExerciseId').value;
+            const sessIdx = parseInt(document.getElementById('editingSessionIndex').value);
+            const ex = exercisesDB.find(e => e.id === exId);
+            if (!ex) return;
+
+            const date = document.getElementById('sessionDate').value;
+            const weights = Array.from(document.querySelectorAll('.set-weight')).map(i => parseFloat(i.value) || 0);
+            const reps = Array.from(document.querySelectorAll('.set-reps')).map(i => parseInt(i.value) || 0);
+            const setsData = weights.map((w, idx) => ({ weight: w, reps: reps[idx] }));
+
+            if (!ex.history) ex.history = [];
+
+            if (sessIdx >= 0) {
+                ex.history[sessIdx] = { date, sets: setsData };
+            } else {
+                ex.history.push({ date, sets: setsData });
+            }
+
+            saveExercisesToStorage();
+            closeSessionModal();
+            renderGymExercises();
+        });
+
+        function deleteSession(exId, sessIdx) {
+            const ex = exercisesDB.find(e => e.id === exId);
+            if (ex && ex.history) {
+                ex.history.splice(sessIdx, 1);
+                saveExercisesToStorage();
+                renderGymExercises();
+            }
+        }
+
+        function editSession(exId, sessIdx) { openSessionModal(exId, sessIdx); }
+
+        function openCustomExModal() {
+            document.getElementById('editExId').value = '';
+            document.getElementById('modalCustomExTitle').textContent = "Configurar Ejercicio";
+            document.getElementById('customExForm').reset();
+            tempImageBase64 = '';
+            document.getElementById('activationsContainer').innerHTML = '';
+            addActivationRow('Pectoral Mayor (Pecho)', 70);
+            addActivationRow('Deltoides Anterior (Hombros)', 30);
+            document.getElementById('customExModal').classList.remove('hidden');
+        }
+
+        function closeCustomExModal() { document.getElementById('customExModal').classList.add('hidden'); }
+
+        function editExercise(exId) {
+            const ex = exercisesDB.find(e => e.id === exId);
+            if (!ex) return;
+
+            document.getElementById('editExId').value = ex.id;
+            document.getElementById('modalCustomExTitle').textContent = "Editar Ejercicio";
+            document.getElementById('newExName').value = ex.name;
+            document.getElementById('newExDay').value = ex.day;
+            document.getElementById('newExGroup').value = ex.muscle;
+            document.getElementById('newExRange').value = ex.range || '8-10';
+            document.getElementById('newExSets').value = ex.sets || 3;
+            tempImageBase64 = ex.image || '';
+
+            const actContainer = document.getElementById('activationsContainer');
+            actContainer.innerHTML = '';
+            if (ex.activations && ex.activations.length > 0) {
+                ex.activations.forEach(a => addActivationRow(a.name, a.pct));
+            } else {
+                addActivationRow('Pectoral Mayor (Pecho)', 100);
+            }
+
+            document.getElementById('customExModal').classList.remove('hidden');
+        }
+
+        function deleteExercise(exId) {
+            if (confirm("¿Estás seguro de que deseas eliminar este ejercicio?")) {
+                exercisesDB = exercisesDB.filter(e => e.id !== exId);
+                saveExercisesToStorage();
+                renderGymExercises();
+                updateAnatomicalMapColors();
+            }
+        }
+
+        document.getElementById('customExForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editExId').value;
+            const name = document.getElementById('newExName').value;
+            const day = parseInt(document.getElementById('newExDay').value);
+            const group = document.getElementById('newExGroup').value;
+            const range = document.getElementById('newExRange').value;
+            const sets = parseInt(document.getElementById('newExSets').value) || 3;
+
+            const selectInputs = document.querySelectorAll('.act-name');
+            const pctInputs = document.querySelectorAll('.act-pct');
+            let acts = [];
+            for(let i = 0; i < selectInputs.length; i++) {
+                if(selectInputs[i].value.trim() !== '') {
+                    acts.push({ name: selectInputs[i].value, pct: parseInt(pctInputs[i].value) || 0 });
+                }
+            }
+
+            if (editId) {
+                const ex = exercisesDB.find(e => e.id === editId);
+                if (ex) {
+                    ex.name = name;
+                    if(tempImageBase64) ex.image = tempImageBase64;
+                    ex.day = day;
+                    ex.muscle = group;
+                    ex.range = range;
+                    ex.sets = sets;
+                    ex.activations = acts;
+                }
+            } else {
+                const newEx = {
+                    id: 'custom_' + Date.now(),
+                    day, name, image: tempImageBase64, muscle: group, range, sets,
+                    activations: acts, history: [],
+                    progressionRule: { strategy: 'reps_first', step: 2.0 }
+                };
+                exercisesDB.push(newEx);
+            }
+
+            saveExercisesToStorage();
+            closeCustomExModal();
+            renderGymExercises();
+            updateAnatomicalMapColors();
+        });
+
+        function showMuscleDetail(muscle) {
+            const card = document.getElementById('muscleInfoCard');
+            const title = document.getElementById('muscleInfoTitle');
+            const list = document.getElementById('muscleInfoList');
+
+            const related = exercisesDB.filter(ex => ex.day === currentGymDay && ex.muscle === muscle);
+            title.textContent = `Estímulo en ${muscle} (Día ${currentGymDay})`;
+            list.innerHTML = '';
+
+            if (related.length === 0) {
+                list.innerHTML = `<li class="text-slate-400">No hay ejercicios cargados para este músculo en el Día ${currentGymDay}.</li>`;
+            } else {
+                related.forEach(ex => {
+                    const actsText = (ex.activations || []).map(a => `${a.name}: ${a.pct}%`).join(', ');
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${ex.name}</strong> — <span class="text-emerald-400">${actsText || 'General'}</span>`;
+                    list.appendChild(li);
+                });
+            }
+
+            card.classList.remove('hidden');
+        }
+
+        function updateAnatomicalMapColors() {
+            const counts = {};
+            const dayExercises = exercisesDB.filter(ex => ex.day === currentGymDay);
+            dayExercises.forEach(ex => { 
+                counts[ex.muscle] = (counts[ex.muscle] || 0) + 1; 
+            });
+
+            const mapping = {
+                'Pecho': ['svg-pecho'], 'Hombros': ['svg-hombros-frente', 'svg-hombros-espalda'],
+                'Bíceps': ['svg-biceps'], 'Tríceps': ['svg-triceps'], 'Core': ['svg-core'],
+                'Piernas': ['svg-cuadriceps'], 'Glúteos': ['svg-gluteos'], 'Pantorrillas': ['svg-pantorrillas-frente', 'svg-pantorrillas'],
+                'Espalda': ['svg-espalda']
+            };
+
+            Object.keys(mapping).forEach(muscle => {
+                const stims = counts[muscle] || 0;
+                let color = '#475569';
+                if (stims === 1) color = '#3b82f6';
+                else if (stims === 2) color = '#10b981';
+                else if (stims >= 3) color = '#f97316';
+
+                mapping[muscle].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute('fill', color);
+                });
+            });
+        }
+
+        function initBodyChart() {
+            updateBodyChart();
+        }
+
+        function updateBodyChart() {
+            const metric = document.getElementById('chartMetricSelect').value;
+            const labels = measuresDB.map(m => m.date);
+            let dataValues = [];
+            let labelName = 'Peso (kg)';
+            let borderColor = '#3b82f6';
+
+            measuresDB.forEach(m => {
+                if (metric === 'weight') dataValues.push(m.weight);
+                else if (metric === 'fat') dataValues.push(m.fat);
+                else if (metric === 'armFlexed') dataValues.push(m.armFlexed || 0);
+                else if (metric === 'armRelaxed') dataValues.push(m.armRelaxed || 0);
+                else if (metric === 'forearm') dataValues.push(m.forearm || 0);
+                else if (metric === 'chest') dataValues.push(m.chest || 0);
+                else if (metric === 'thigh') dataValues.push(m.thigh || 0);
+                else if (metric === 'calf') dataValues.push(m.calf || 0);
+                else if (metric === 'abdomen') dataValues.push(m.abdomen || 0);
+            });
+
+            const selectEl = document.getElementById('chartMetricSelect');
+            labelName = selectEl.options[selectEl.selectedIndex].text;
+            borderColor = metric === 'weight' ? '#3b82f6' : (metric === 'fat' ? '#10b981' : '#f59e0b');
+
+            const ctx = document.getElementById('bodyChart').getContext('2d');
+            if (bodyChart) bodyChart.destroy();
+
+            bodyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: labelName,
+                        data: dataValues,
+                        borderColor: borderColor,
+                        backgroundColor: borderColor + '20',
+                        borderWidth: 2.5,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: borderColor,
+                        pointRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, labels: { color: '#cbd5e1', font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { font: { size: 10 }, color: '#94a3b8' }, grid: { display: false } },
+                        y: { ticks: { font: { size: 10 }, color: '#94a3b8' }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
